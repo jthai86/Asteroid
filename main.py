@@ -5,6 +5,8 @@ from player import Player
 from asteroid import Asteroid
 from asteroidfield import AsteroidField
 from shot import Shot
+from gameover import GameOverScreen
+from explosion import Explosion
 
 
 def main():
@@ -12,15 +14,22 @@ def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
 
+    score = 0
+    lives = 3
+    font = pygame.font.Font(None, 36)
+    explosion_frames = Explosion.generate_placeholder_explosions()
+
     updatable = pygame.sprite.Group()
     drawable = pygame.sprite.Group()
     asteroids = pygame.sprite.Group()
     shots = pygame.sprite.Group()
+    explosions = pygame.sprite.Group()
 
     Asteroid.containers = (asteroids, updatable, drawable)
     Shot.containers = (shots, updatable, drawable)
+    Explosion.containers = (explosions, updatable, drawable)
     AsteroidField.containers = updatable
-    asteroid_field = AsteroidField()
+    asteroid_field = AsteroidField(explosion_frames)
 
     Player.containers = (updatable, drawable)
 
@@ -36,19 +45,31 @@ def main():
         updatable.update(dt)
 
         for asteroid in asteroids:
-            if asteroid.collides_with(player):
-                print("Game over!")
-                sys.exit()
+            if asteroid.collides_with(player) and not player.invulnerable:
+                lives -= 1
+                if lives <= 0:
+                    game_over = GameOverScreen(screen, font, score)
+                    game_over.run()
+                    return
+                else:
+                    player.respawn(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)   
 
             for shot in shots:
                 if asteroid.collides_with(shot):
                     shot.kill()
                     asteroid.split()
+                    score += 100
 
         screen.fill("black")
 
         for obj in drawable:
             obj.draw(screen)
+
+        score_text = font.render(f"Score: {score}", True, "white")
+        screen.blit(score_text, (10, 10))
+
+        lives_text = font.render(f"Lives: {lives}", True, "white")
+        screen.blit(lives_text, (10, 40))    
 
         pygame.display.flip()
 
@@ -58,3 +79,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+   
