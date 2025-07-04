@@ -14,6 +14,9 @@ def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
 
+    background_img = pygame.image.load("image.png").convert()
+    background_img = pygame.transform.scale(background_img, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
     score = 0
     lives = 3
     font = pygame.font.Font(None, 36)
@@ -60,7 +63,7 @@ def main():
                     asteroid.split()
                     score += 100
 
-        screen.fill("black")
+        screen.blit(background_img, (0, 0))
 
         for obj in drawable:
             obj.draw(screen)
